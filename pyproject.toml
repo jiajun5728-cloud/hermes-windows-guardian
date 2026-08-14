@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hermes-windows-guardian"
+version = "0.1.0"
+description = "A conservative, windowless watchdog for Hermes Agent gateways on Windows."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{name = "jiajun5728-cloud"}]
+keywords = ["hermes-agent", "windows", "gateway", "watchdog", "codex"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Win32 (MS Windows)",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Operating System :: Microsoft :: Windows :: Windows 10",
+  "Operating System :: Microsoft :: Windows :: Windows 11",
+]
+
+[project.urls]
+Homepage = "https://github.com/jiajun5728-cloud/hermes-windows-guardian"
+Issues = "https://github.com/jiajun5728-cloud/hermes-windows-guardian/issues"
+
+[project.scripts]
+hermes-windows-guardian = "hermes_windows_guardian.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hermes_windows_guardian"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
