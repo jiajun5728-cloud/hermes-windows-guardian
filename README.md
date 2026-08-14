@@ -1,6 +1,6 @@
 # Hermes Windows Guardian
 
-[![Windows CI](https://github.com/jiajun5728-cloud/hermes-windows-guardian/actions/workflows/test.yml/badge.svg)](https://github.com/jiajun5728-cloud/hermes-windows-guardian/actions/workflows/test.yml)
+[![Windows CI](https://github.com/lajiaojiang-ai/hermes-windows-guardian/actions/workflows/test.yml/badge.svg)](https://github.com/lajiaojiang-ai/hermes-windows-guardian/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A conservative, windowless watchdog for the [Hermes Agent](https://github.com/NousResearch/hermes-agent) messaging Gateway on Windows 10/11.
@@ -32,13 +32,13 @@ Guardian is deliberately conservative:
 Prerequisites: Windows 10/11, Python 3.11+, and a working Hermes Agent installation.
 
 ```powershell
-pipx install git+https://github.com/jiajun5728-cloud/hermes-windows-guardian.git
+pipx install git+https://github.com/lajiaojiang-ai/hermes-windows-guardian.git
 ```
 
 Or with `uv`:
 
 ```powershell
-uv tool install git+https://github.com/jiajun5728-cloud/hermes-windows-guardian.git
+uv tool install git+https://github.com/lajiaojiang-ai/hermes-windows-guardian.git
 ```
 
 ## Use
@@ -128,7 +128,7 @@ Guardian 每五分钟独立检查一次，但只有 **Hermes CLI 和 Windows 进
 安装：
 
 ```powershell
-uv tool install git+https://github.com/jiajun5728-cloud/hermes-windows-guardian.git
+uv tool install git+https://github.com/lajiaojiang-ai/hermes-windows-guardian.git
 hermes-windows-guardian --json check
 hermes-windows-guardian install
 ```
