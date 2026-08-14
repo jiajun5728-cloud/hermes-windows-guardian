@@ -211,10 +211,12 @@ def build_watchdog_task_command(
     pythonw: str,
     task_name: str = "Hermes Windows Guardian",
     interval_minutes: int = 5,
+    run_once_args: list[str] | None = None,
 ) -> list[str]:
-    action = subprocess.list2cmdline(
-        [pythonw, "-m", "hermes_windows_guardian.cli", "run-once"]
-    )
+    action_parts = [pythonw, "-m", "hermes_windows_guardian.cli"]
+    action_parts.extend(run_once_args or [])
+    action_parts.append("run-once")
+    action = subprocess.list2cmdline(action_parts)
     return [
         shutil.which("schtasks.exe") or "schtasks.exe",
         "/Create",

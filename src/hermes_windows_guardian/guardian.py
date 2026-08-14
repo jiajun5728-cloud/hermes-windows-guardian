@@ -18,9 +18,31 @@ class Restarter(Protocol):
     def restart(self, dry_run: bool = False) -> dict[str, Any]: ...
 
 
+def read_operator_intent(state_file: Path) -> str:
+    """Return running, stopped, or unknown without guessing operator intent."""
+    try:
+        data = json.loads(state_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return "unknown"
+    if not isinstance(data, dict):
+        return "unknown"
+
+    desired = data.get("desired_state")
+    if isinstance(desired, str):
+        return desired if desired in {"running", "stopped"} else "unknown"
+
+    runtime = data.get("gateway_state")
+    if runtime in {"running", "draining", "degraded"}:
+        return "running"
+    if runtime == "stopped":
+        return "stopped"
+    return "unknown"
+
+
 @dataclass(frozen=True)
 class GuardianConfig:
     state_dir: Path
+    upstream_state_file: Path
     cooldown_seconds: int = 15 * 60
     post_restart_wait_seconds: int = 20
 
@@ -40,7 +62,16 @@ class Guardian:
         self.restarter = restarter
 
     def _log(self, event: dict[str, Any]) -> None:
-        allowed = {"event", "health", "pids", "action", "method", "ok", "dry_run"}
+        allowed = {
+            "event",
+            "health",
+            "intent",
+            "pids",
+            "action",
+            "method",
+            "ok",
+            "dry_run",
+        }
         clean = {key: value for key, value in event.items() if key in allowed}
         clean["ts"] = datetime.now(UTC).isoformat(timespec="seconds")
         self.config.state_dir.mkdir(parents=True, exist_ok=True)
@@ -84,6 +115,22 @@ class Guardian:
                 "pids": pids,
             }
             self._log({"event": "inconclusive", **result})
+            return result
+
+        intent = read_operator_intent(self.config.upstream_state_file)
+        if intent != "running":
+            action = (
+                "operator_stop_no_action"
+                if intent == "stopped"
+                else "intent_unknown_no_action"
+            )
+            result = {
+                "action": action,
+                "health": health.value,
+                "intent": intent,
+                "pids": pids,
+            }
+            self._log({"event": action, **result})
             return result
         if self._in_cooldown():
             result = {

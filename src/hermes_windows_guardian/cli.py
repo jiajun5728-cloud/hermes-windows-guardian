@@ -28,10 +28,11 @@ def build_guardian(args: argparse.Namespace) -> Guardian:
     home = Path(args.home) if args.home else default_hermes_home()
     config = GuardianConfig(
         state_dir=Path(args.state_dir) if args.state_dir else default_state_dir(),
+        upstream_state_file=home / "gateway_state.json",
         cooldown_seconds=args.cooldown,
         post_restart_wait_seconds=args.post_restart_wait,
     )
-    return Guardian(config, WindowsProbe(home), WindowsRestarter(home, args.profile))
+    return Guardian(config, WindowsProbe(home), WindowsRestarter(home))
 
 
 def emit(payload: dict, as_json: bool) -> None:
@@ -41,11 +42,24 @@ def emit(payload: dict, as_json: bool) -> None:
     print(" ".join(f"{key}={value}" for key, value in payload.items()))
 
 
-def install_task(interval: int) -> dict:
+def scheduled_run_args(args: argparse.Namespace) -> list[str]:
+    result: list[str] = []
+    if args.home:
+        result.extend(["--home", args.home])
+    if args.state_dir:
+        result.extend(["--state-dir", args.state_dir])
+    result.extend(["--cooldown", str(args.cooldown)])
+    result.extend(["--post-restart-wait", str(args.post_restart_wait)])
+    return result
+
+
+def install_task(interval: int, run_once_args: list[str] | None = None) -> dict:
     if sys.platform != "win32":
         return {"ok": False, "error": "Windows only"}
     pythonw = str(Path(sys.executable).with_name("pythonw.exe"))
-    command = build_watchdog_task_command(pythonw, TASK_NAME, interval)
+    command = build_watchdog_task_command(
+        pythonw, TASK_NAME, interval, run_once_args=run_once_args
+    )
     result = subprocess.run(
         command,
         check=False,
@@ -87,7 +101,7 @@ def parser() -> argparse.ArgumentParser:
         "--home", help="Hermes home (defaults to HERMES_HOME or %LOCALAPPDATA%\\hermes)"
     )
     root.add_argument("--state-dir", help="Guardian state directory")
-    root.add_argument("--profile", help="Optional Hermes profile name")
+
     root.add_argument("--cooldown", type=int, default=900)
     root.add_argument("--post-restart-wait", type=int, default=20)
     root.add_argument("--json", action="store_true")
@@ -108,7 +122,7 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     if args.command == "install":
-        result = install_task(args.interval)
+        result = install_task(args.interval, scheduled_run_args(args))
     elif args.command == "uninstall":
         result = uninstall_task()
     elif args.command == "check":

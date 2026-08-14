@@ -29,6 +29,22 @@ def test_task_command_uses_pythonw_and_current_user_task():
     assert "/F" in cmd
 
 
+def test_task_command_persists_custom_home_and_state_dir():
+    cmd = build_watchdog_task_command(
+        pythonw=r"C:\Program Files\Python\pythonw.exe",
+        run_once_args=[
+            "--home",
+            r"D:\Hermes Home",
+            "--state-dir",
+            r"D:\Guardian State",
+        ],
+    )
+    action = cmd[cmd.index("/TR") + 1]
+    assert '"D:\\Hermes Home"' in action
+    assert '"D:\\Guardian State"' in action
+    assert action.endswith("run-once")
+
+
 def test_restarter_falls_back_to_official_cli_when_task_is_absent(
     monkeypatch, tmp_path
 ):

@@ -4,11 +4,11 @@
 
 Hermes Windows Guardian is local-only and makes no network requests. It does not read Hermes conversations, memories, configuration files, `.env`, OAuth files, browser profiles, or messaging credentials.
 
-The event log intentionally stores only timestamps, health state, numeric process IDs, recovery action, method, and success state. Command lines and subprocess output are never logged.
+The event log intentionally stores only timestamps, health state, coarse operator intent, numeric process IDs, recovery action, method, and success state. Command lines and subprocess output are never logged.
 
 ## Recovery boundary
 
-The project has no force-kill implementation. It asks the official Hermes Scheduled Task to run, or falls back to the official `hermes gateway start` command. If health evidence is incomplete, it fails safe without recovery.
+The project has no force-kill implementation. It asks the official Hermes Scheduled Task to run, or falls back to the official `hermes gateway start` command. Recovery requires both negative health evidence and a persisted `running` operator intent. Intentional stop, missing state, corrupt state, or incomplete health evidence fails safe without recovery.
 
 ## Reporting a vulnerability
 
