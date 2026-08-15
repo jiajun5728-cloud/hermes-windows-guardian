@@ -13,6 +13,12 @@ A healthy Desktop window does not always mean the messaging Gateway is alive. Wi
 
 Related public reports include [#35692](https://github.com/NousResearch/hermes-agent/issues/35692), [#41662](https://github.com/NousResearch/hermes-agent/issues/41662), [#48820](https://github.com/NousResearch/hermes-agent/issues/48820), [#83683](https://github.com/NousResearch/hermes-agent/issues/83683), [#84694](https://github.com/NousResearch/hermes-agent/issues/84694), and [#84855](https://github.com/NousResearch/hermes-agent/issues/84855).
 
+### Upstream status (August 2026)
+
+Hermes issue [#41662](https://github.com/NousResearch/hermes-agent/issues/41662) is now closed as completed: upstream's normal Windows Scheduled Task install has used `RestartOnFailure` since [#45610](https://github.com/NousResearch/hermes-agent/pull/45610), and the last unsafe raw `os.kill(pid, 0)` liveness probe was removed by [#86665](https://github.com/NousResearch/hermes-agent/pull/86665). Guardian does **not** replace those upstream protections.
+
+The issue-closing [technical triage comment](https://github.com/NousResearch/hermes-agent/issues/41662#issuecomment-5300434069) separately identified the remaining gap—manually started Gateways and Startup-folder fallback installs have no external respawner—and described this project as “a reasonable user-space belt-and-suspenders for manually-started gateways.” That is the narrow use case Guardian continues to target. This reference is not an official affiliation or endorsement.
+
 ## Safety model
 
 Guardian is deliberately conservative:
@@ -94,6 +100,7 @@ No force-kill path exists in this project.
 ## Upstream context and known limits
 
 - This is a community fallback, **not** an official Hermes component and not a replacement for `hermes gateway install`.
+- A normal current `hermes gateway install` already receives upstream Task Scheduler crash recovery. Guardian is primarily for manually started Gateways, Startup-folder fallback installs, or operators who knowingly want an extra conservative user-space check.
 - It may restart a Gateway after a Desktop orphan-reaper event; it cannot prevent or repair the Desktop reaper itself ([#83683](https://github.com/NousResearch/hermes-agent/issues/83683), [#84855](https://github.com/NousResearch/hermes-agent/issues/84855)).
 - It does not fix messaging-adapter configuration, proxy behavior, or unexplained hard-exit root causes.
 - `v0.1` supervises the default profile only. Multi-profile process attribution is intentionally out of scope.
@@ -120,6 +127,8 @@ See [SECURITY.md](SECURITY.md) for the threat model and reporting process.
 Hermes Windows Guardian 是一个面向 Windows 10/11 的保守型、无黑框 Hermes Gateway 看门狗。
 
 它解决的问题很具体：Desktop 正常打开时，负责消息通道的 Gateway 仍可能静默退出。Hermes 上游已经有 Windows 启动脚本、计划任务重启设置和进程内 `gateway.loop_watchdog`；Guardian 只是这些机制仍未兜住时的额外进程外保险。
+
+上游已经解决了正常计划任务安装下的主要崩溃恢复问题：[#41662](https://github.com/NousResearch/hermes-agent/issues/41662) 已按完成关闭，正常安装使用 `RestartOnFailure` 自动回拉。该 Issue 的[结案技术评论](https://github.com/NousResearch/hermes-agent/issues/41662#issuecomment-5300434069)同时指出，手动启动的 Gateway 和 Startup 文件夹回退安装仍没有外部回拉器，并将本项目描述为手动启动场景下“合理的用户层额外保险”。这只是上游议题中的技术引用，不代表官方隶属或背书。
 
 Guardian 每五分钟独立检查一次，但只有 **Hermes CLI 和 Windows 进程检查同时确认死亡**，并且 `gateway_state.json` 仍明确记录运行意图时，才会尝试恢复。主动执行 `hermes gateway stop`、状态缺失或状态损坏都会阻止回拉。
 
